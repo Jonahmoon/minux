@@ -27,7 +27,7 @@ else
     touch $log_path/cpp.log
     touch $log_path/py.log
 fi
-cp $log_path/../script/hooks/README $log_path/
+cp $log_path/../script/hooks/README.md $log_path/
 
 # error count
 sum=0
