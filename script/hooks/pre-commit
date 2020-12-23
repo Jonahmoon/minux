@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+pushd "$(dirname "$0")" >& /dev/null
+HERE="$(pwd)"
+popd >& /dev/null
+
+if git rev-parse --verify HEAD >/dev/null 2>&1
+then
+    against=HEAD
+else
+    #Initial commit: diff against an empty tree object
+    against=4b825dc
+fi
+
+# Redirect output to stderr
+exec 1>&2
+
+# create log file
+log_path=$HERE/../../lint_error_log
+if [ ! -d $log_path ]; then
+    mkdir $log_path
+    touch $log_path/cpp.log
+    touch $log_path/py.log
+else
+    rm $log_path/cpp.log
+    rm $log_path/py.log
+    touch $log_path/cpp.log
+    touch $log_path/py.log
+fi
+cp $log_path/../script/hooks/README $log_path/
+
+# error count
+sum=0
+
+#for cpp
+for file in $(git diff-index --name-status $against -- | grep -E '\.[ch](pp)?$' | awk '{if($1!="D")print $2}'); do
+    echo "check $file"
+    echo $(readlink -f $file)>>$log_path/cpp.log
+    cpplint $file >>$log_path/cpp.log 2>&1
+    sum=$(expr ${sum} + $?)
+done
+
+#for py
+for file in $(git diff-index --name-status $against -- | grep -E '\.(py)?$' | awk '{if($1!="D")print $2}'); do
+    echo "check $file"
+    echo $(readlink -f $file)>>$log_path/py.log 
+    pylint --rcfile=$HERE/../../PYLINT.cfg $file >>$log_path/py.log 2>&1
+    sum=$(expr ${sum} + $?)
+done
+
+if [ ${sum} -eq 0 ]; then
+    echo "No lint_error find: continue to commit"
+    rm $log_path -rf
+    exit 0
+else
+    echo "Please check $(readlink -f $log_path) for more info"
+    exit 1
+fi
