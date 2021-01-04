@@ -1,0 +1,23 @@
+pytest
+scipy
+munch
+opencv-python
+matplotlib
+scikit-image
+pillow
+sacred
+tqdm
+shapely
+lanms; python_version >= '3.4'
+pandas
+numpy
+tensorboardX
+boto3
+requests
+scikit-learn
+regex
+nltk
+yacs
+onnx
+cpplint; python_version >= '3.5'
+pylint; python_version >= '3.5'
